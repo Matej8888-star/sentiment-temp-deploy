@@ -1,0 +1,82 @@
+# ============================================================
+# 舆情分析模块配置 - 从 DSA (daily_stock_analysis) 提取优化
+# ============================================================
+# 版本: 1.0.0
+# 状态: enabled=false 默认关闭，验证通过后手动开启
+# 回退: 将此文件 enabled 设为 false 即可完全关闭，不影响现有系统
+# ============================================================
+
+enabled: false  # <-- 总开关：false=关闭（默认），true=开启
+
+# --- LLM 配置 ---
+# 复用系统现有的 LLM 配置，或单独指定
+llm:
+  # 如果为空，自动尝试复用系统 LLM 配置
+  model: ""           # 例如: "gemini/gemini-2.0-flash"
+  api_key: ""         # 如果为空，尝试从环境变量读取
+  temperature: 0.7
+  max_tokens: 8192
+  # 请求间隔（秒），防止触发限流
+  request_delay: 1.0
+
+# --- 数据源配置 ---
+# 复用系统现有的数据源（QMT / baostock / JQData）
+data_source:
+  # 数据源优先级：primary -> fallback
+  primary: "qmt"      # qmt / baostock / jqdata
+  fallback: "baostock"
+  # 实时行情开关
+  enable_realtime: true
+  # 筹码分布开关
+  enable_chip: false   # 需要 Level-2 权限，默认关闭
+
+# --- 分析标的 ---
+# 监控的股票列表（复用系统持仓或单独指定）
+watchlist:
+  # 如果为 true，自动从系统持仓读取
+  use_portfolio: true
+  # 单独指定的股票代码（当 use_portfolio=false 时生效）
+  stocks: []
+  # 指数代码（用于大盘环境判断）
+  indices:
+    - "000001"   # 上证指数
+    - "399001"   # 深证成指
+    - "399006"   # 创业板指
+
+# --- 风险规则 ---
+risk_rules:
+  # 高位放量阈值：量比 > 此值触发预警
+  volume_ratio_high: 3.0
+  # 缩量阴跌阈值：量比 < 此值且连跌天数 >= 阈值
+  volume_ratio_low: 0.5
+  consecutive_decline_days: 3
+  # 乖离率警戒阈值
+  bias_warning: 5.0
+  bias_danger: 8.0
+  # 换手率异常阈值
+  turnover_rate_high: 20.0
+  turnover_rate_low: 0.3
+
+# --- 推送配置 ---
+notification:
+  # 复用系统现有的飞书推送（CC Connect）
+  use_system_feishu: true
+  # 推送时间（收盘后）
+  push_time: "15:35"
+  # 推送格式: simple / full
+  format: "simple"
+  # 噪音控制：相同内容不重复推送（小时）
+  dedup_hours: 4
+
+# --- 定时任务 ---
+schedule:
+  # 每日执行时间
+  daily_time: "15:35"
+  # 工作日执行（跳过周末和节假日）
+  trading_days_only: true
+
+# --- 日志 ---
+logging:
+  level: "INFO"
+  # 日志文件路径（相对项目根目录）
+  file: "logs/sentiment_analysis.log"
